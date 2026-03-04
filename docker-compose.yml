@@ -1,0 +1,80 @@
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  nakama:
+    image: registry.heroiclabs.com/heroiclabs/nakama:3.24.2
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - NAKAMA_SERVER_KEY=${NAKAMA_SERVER_KEY:-playru-server-key}
+    entrypoint:
+      - /bin/sh
+      - -ecx
+      - >
+        /nakama/nakama migrate up
+        --database.address postgres:${POSTGRES_PASSWORD:-changeme}@postgres:5432/nakama?sslmode=disable &&
+        exec /nakama/nakama
+        --config /nakama/config.yml
+        --database.address postgres:${POSTGRES_PASSWORD:-changeme}@postgres:5432/nakama?sslmode=disable
+        --socket.server_key ${NAKAMA_SERVER_KEY:-playru-server-key}
+    volumes:
+      - ./nakama/modules:/nakama/data/modules
+      - ./nakama/config/config.yml:/nakama/config.yml
+    ports:
+      - "7349:7349"
+      - "7350:7350"
+      - "7351:7351"
+    healthcheck:
+      test: ["CMD", "/nakama/nakama", "healthcheck"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    restart: unless-stopped
+
+  django:
+    build:
+      context: ./backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.development
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-changeme-very-long-secret-key}
+      - DJANGO_DEBUG=${DJANGO_DEBUG:-True}
+      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,0.0.0.0}
+      - DB_NAME=playru
+      - DB_USER=django_user
+      - DB_PASSWORD=${DJANGO_DB_PASSWORD:-changeme}
+      - DB_HOST=postgres
+      - DB_PORT=5432
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  adminer:
+    image: adminer:latest
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+volumes:
+  pgdata:

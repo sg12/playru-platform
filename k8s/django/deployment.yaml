@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django
+  namespace: playru
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: django
+  template:
+    metadata:
+      labels:
+        app: django
+    spec:
+      containers:
+      - name: django
+        image: playru-backend:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DJANGO_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: playru-secrets
+              key: django-secret-key
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: playru-secrets
+              key: django-db-url
+        - name: DJANGO_DEBUG
+          value: "False"
+        - name: DJANGO_ALLOWED_HOSTS
+          value: "playru.ru,api.playru.ru"
+        command: ["gunicorn", "config.wsgi:application",
+                  "--bind", "0.0.0.0:8000",
+                  "--workers", "4", "--timeout", "120"]
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /api/v1/platform/health/
+            port: 8000
+          initialDelaySeconds: 15
+          periodSeconds: 20
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/v1/platform/health/
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          failureThreshold: 2

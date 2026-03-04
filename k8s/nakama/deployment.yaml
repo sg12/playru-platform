@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nakama
+  namespace: playru
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nakama
+  template:
+    metadata:
+      labels:
+        app: nakama
+    spec:
+      containers:
+      - name: nakama
+        image: heroiclabs/nakama:3.22.0
+        ports:
+        - containerPort: 7349
+        - containerPort: 7350
+        - containerPort: 7351
+        args:
+        - "--config=/nakama/config.yml"
+        - "--database.address=$(NAKAMA_DB_DSN)"
+        env:
+        - name: NAKAMA_DB_DSN
+          valueFrom:
+            secretKeyRef:
+              name: playru-secrets
+              key: nakama-db-dsn
+        volumeMounts:
+        - name: nakama-modules
+          mountPath: /nakama/data/modules
+        - name: nakama-config
+          mountPath: /nakama/config.yml
+          subPath: config.yml
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 7350
+          initialDelaySeconds: 20
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 7350
+          initialDelaySeconds: 40
+          periodSeconds: 30
+      volumes:
+      - name: nakama-modules
+        configMap:
+          name: nakama-modules
+      - name: nakama-config
+        configMap:
+          name: nakama-config

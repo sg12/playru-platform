@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: playru-config
+  namespace: playru
+data:
+  DJANGO_ALLOWED_HOSTS: "playru.ru,api.playru.ru"
+  DJANGO_DEBUG: "False"
+  POSTGRES_DB: "playru"

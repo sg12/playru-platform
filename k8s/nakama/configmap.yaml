@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nakama-config
+  namespace: playru
+data:
+  config.yml: |
+    name: playru
+    logger:
+      level: INFO
+    session:
+      token_expiry_sec: 86400

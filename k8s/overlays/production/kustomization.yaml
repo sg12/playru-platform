@@ -1,0 +1,37 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: playru
+
+resources:
+  - ../../namespace.yaml
+  - ../../postgres/deployment.yaml
+  - ../../postgres/service.yaml
+  - ../../postgres/pvc.yaml
+  - ../../nakama/deployment.yaml
+  - ../../nakama/service.yaml
+  - ../../nakama/configmap.yaml
+  - ../../django/deployment.yaml
+  - ../../django/service.yaml
+  - ../../django/ingress.yaml
+
+images:
+  - name: playru-backend
+    newName: registry.selectel.ru/playru/backend
+    newTag: latest
+
+patches:
+  - patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2
+    target:
+      kind: Deployment
+      name: django
+  - patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2
+    target:
+      kind: Deployment
+      name: nakama

@@ -1,0 +1,11 @@
+name: playru
+data_dir: /nakama/data
+logger:
+  level: INFO
+session:
+  token_expiry_sec: 86400
+runtime:
+  lua_min_count: 2
+  lua_max_count: 32
+  lua_call_stack_size: 128
+  lua_registry_size: 512

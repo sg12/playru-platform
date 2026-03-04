@@ -1,0 +1,79 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: 'Force deploy even if tests fail'
+        required: false
+        default: 'false'
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    needs: []
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Login to Selectel Registry
+      uses: docker/login-action@v3
+      with:
+        registry: registry.selectel.ru
+        username: ${{ secrets.SELECTEL_REGISTRY_USER }}
+        password: ${{ secrets.SELECTEL_REGISTRY_PASSWORD }}
+
+    - name: Build and push Django image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./backend
+        push: true
+        tags: |
+          registry.selectel.ru/playru/backend:latest
+          registry.selectel.ru/playru/backend:${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    environment: production
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+
+    - name: Configure kubectl for Selectel
+      run: |
+        mkdir -p ~/.kube
+        echo "${{ secrets.KUBECONFIG_BASE64 }}" | base64 -d > ~/.kube/config
+        chmod 600 ~/.kube/config
+
+    - name: Update image tag in kustomization
+      run: |
+        cd k8s/overlays/production
+        sed -i "s/newTag: latest/newTag: ${{ github.sha }}/" kustomization.yaml
+
+    - name: Apply K8s manifests
+      run: |
+        kubectl apply -k k8s/overlays/production
+        kubectl rollout status deployment/django -n playru --timeout=300s
+        kubectl rollout status deployment/nakama -n playru --timeout=300s
+
+    - name: Run smoke tests
+      run: |
+        DJANGO_URL=$(kubectl get ingress -n playru -o jsonpath='{.items[0].spec.rules[0].host}')
+        sleep 30
+        curl -sf "https://$DJANGO_URL/api/v1/platform/health/" | \
+          python3 -c "import sys,json; d=json.load(sys.stdin); assert d['status']=='ok'; print('OK: Production health check')"
+
+    - name: Notify on failure
+      if: failure()
+      run: echo "Deploy failed - check logs"
