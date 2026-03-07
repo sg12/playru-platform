@@ -1,0 +1,35 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<h2>{{ title }}</h2>
+<p>Вы собираетесь отклонить следующие игры:</p>
+<ul>
+  {% for obj in queryset %}
+  <li>{{ obj.title }} ({{ obj.developer.display_name }})</li>
+  {% endfor %}
+</ul>
+
+<form method="post">
+  {% csrf_token %}
+  {% for obj in queryset %}
+  <input type="hidden" name="{{ action_checkbox_name }}" value="{{ obj.pk }}">
+  {% endfor %}
+  <input type="hidden" name="action" value="reject_selected">
+  <input type="hidden" name="apply" value="1">
+
+  <p>
+    <label for="id_rejection_reason"><strong>Причина отклонения:</strong></label><br>
+    <textarea id="id_rejection_reason" name="rejection_reason" rows="4" cols="60" required></textarea>
+  </p>
+
+  <button type="submit" class="button" style="background:#ba2121;color:#fff;border:none;padding:8px 16px;cursor:pointer;">
+    Подтвердить отклонение
+  </button>
+  <a href="{% url 'admin:developer_gamesubmission_changelist' %}" class="button" style="padding:8px 16px;">
+    Отмена
+  </a>
+</form>
+{% endblock %}

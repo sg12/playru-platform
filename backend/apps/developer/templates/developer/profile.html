@@ -1,0 +1,26 @@
+{% extends "developer/base.html" %}
+{% block title %}Профиль — PlayRU Developer{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto">
+    <h1 class="text-2xl font-bold text-white mb-8">Редактирование профиля</h1>
+
+    <form method="post" class="space-y-5">
+        {% csrf_token %}
+        {% for field in form %}
+        <div>
+            <label class="block text-sm text-slate-400 mb-1">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+            <p class="text-red-400 text-sm mt-1">{{ field.errors.0 }}</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <button type="submit"
+                class="w-full py-3 bg-accent hover:bg-blue-700 text-white font-medium rounded-lg transition">
+            Сохранить
+        </button>
+    </form>
+</div>
+{% endblock %}

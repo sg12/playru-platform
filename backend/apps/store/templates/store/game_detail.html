@@ -1,0 +1,63 @@
+{% extends "store/base.html" %}
+
+{% block title %}{{ game.title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-12">
+    <!-- Breadcrumb -->
+    <div class="text-sm text-gray-500 mb-6">
+        <a href="{% url 'store:home' %}" class="hover:text-white transition">Игры</a>
+        <span class="mx-2">›</span>
+        <span class="text-gray-300">{{ game.title }}</span>
+    </div>
+
+    <div class="bg-brand-darker rounded-2xl overflow-hidden">
+        {% if game.thumbnail %}
+        <img src="{{ game.thumbnail.url }}" alt="{{ game.title }}" class="w-full h-64 md:h-80 object-cover">
+        {% else %}
+        <div class="w-full h-64 md:h-80 bg-gradient-to-br from-brand-purple/40 to-brand-dark flex items-center justify-center">
+            <span class="text-7xl">🎮</span>
+        </div>
+        {% endif %}
+
+        <div class="p-6 md:p-8">
+            <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
+                <div>
+                    <h1 class="text-3xl md:text-4xl font-extrabold mb-2">{{ game.title }}</h1>
+                    <div class="flex flex-wrap items-center gap-3 text-sm">
+                        <span class="bg-brand-purple/20 text-brand-purple px-3 py-1 rounded-full">{{ game.genre|title }}</span>
+                        <span class="text-gray-400">⭐ {{ game.avg_rating }} ({{ game.ratings_count }} оценок)</span>
+                        <span class="text-gray-400">👥 {{ game.active_players }} онлайн</span>
+                        <span class="text-gray-400">🎯 {{ game.play_count }} запусков</span>
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-gray-300 leading-relaxed mb-8 text-lg">{{ game.description }}</p>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div class="bg-gray-800/50 rounded-xl p-4 text-center">
+                    <p class="text-2xl font-bold text-brand-yellow">{{ game.min_players }}–{{ game.max_players }}</p>
+                    <p class="text-xs text-gray-400 mt-1">Игроков</p>
+                </div>
+                <div class="bg-gray-800/50 rounded-xl p-4 text-center">
+                    <p class="text-2xl font-bold text-brand-yellow">{{ game.min_age }}+</p>
+                    <p class="text-xs text-gray-400 mt-1">Возраст</p>
+                </div>
+                <div class="bg-gray-800/50 rounded-xl p-4 text-center">
+                    <p class="text-2xl font-bold text-brand-yellow">⭐ {{ game.avg_rating }}</p>
+                    <p class="text-xs text-gray-400 mt-1">Рейтинг</p>
+                </div>
+                <div class="bg-gray-800/50 rounded-xl p-4 text-center">
+                    <p class="text-2xl font-bold text-brand-yellow">{{ game.active_players }}</p>
+                    <p class="text-xs text-gray-400 mt-1">Сейчас играют</p>
+                </div>
+            </div>
+
+            <a href="{% url 'store:download' %}" class="inline-block bg-brand-yellow text-black font-bold px-8 py-4 rounded-xl hover:bg-yellow-400 transition text-lg">
+                🚀 Играть в приложении
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

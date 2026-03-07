@@ -1,0 +1,92 @@
+{% extends "store/base.html" %}
+
+{% block title %}Главная{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<section class="relative overflow-hidden py-20 md:py-32">
+    <div class="absolute inset-0 bg-gradient-to-br from-brand-purple/20 to-brand-dark"></div>
+    <div class="relative max-w-7xl mx-auto px-4 text-center">
+        <h1 class="text-4xl md:text-6xl font-extrabold mb-6">
+            <span class="gradient-text">PlayRU</span> —
+            <br class="md:hidden">Играй. Создавай. Зарабатывай.
+        </h1>
+        <p class="text-gray-300 text-lg md:text-xl max-w-2xl mx-auto mb-8">
+            Российская игровая платформа для детей и подростков. Играй в крутые игры или создавай свои!
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="{% url 'store:download' %}" class="bg-brand-yellow text-black font-bold px-8 py-4 rounded-xl hover:bg-yellow-400 transition text-lg">
+                Скачать приложение
+            </a>
+            <a href="#catalog" class="border-2 border-brand-purple text-brand-purple font-bold px-8 py-4 rounded-xl hover:bg-brand-purple hover:text-white transition text-lg">
+                Смотреть игры
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Catalog -->
+<section id="catalog" class="max-w-7xl mx-auto px-4 py-12">
+    <h2 class="text-3xl font-bold mb-8">Каталог игр</h2>
+
+    <!-- Genre filters -->
+    {% if genres %}
+    <div class="flex flex-wrap gap-2 mb-8">
+        <a href="{% url 'store:home' %}"
+           class="px-4 py-2 rounded-full text-sm font-medium transition {% if not selected_genre %}bg-brand-purple text-white{% else %}bg-gray-800 text-gray-300 hover:bg-gray-700{% endif %}">
+            Все
+        </a>
+        {% for g in genres %}
+        <a href="?genre={{ g }}"
+           class="px-4 py-2 rounded-full text-sm font-medium transition {% if selected_genre == g %}bg-brand-purple text-white{% else %}bg-gray-800 text-gray-300 hover:bg-gray-700{% endif %}">
+            {{ g|title }}
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Game cards -->
+    {% if games %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {% for game in games %}
+        <a href="{% url 'store:game_detail' game.slug %}" class="bg-brand-darker rounded-2xl overflow-hidden card-hover block">
+            {% if game.thumbnail %}
+            <img src="{{ game.thumbnail.url }}" alt="{{ game.title }}" class="w-full h-48 object-cover">
+            {% else %}
+            <div class="w-full h-48 bg-gradient-to-br from-brand-purple/40 to-brand-dark flex items-center justify-center">
+                <span class="text-4xl">🎮</span>
+            </div>
+            {% endif %}
+            <div class="p-4">
+                <h3 class="font-bold text-lg mb-1">{{ game.title }}</h3>
+                <div class="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                    <span class="bg-brand-purple/20 text-brand-purple px-2 py-0.5 rounded-full text-xs">{{ game.genre|title }}</span>
+                </div>
+                <div class="flex items-center justify-between text-sm text-gray-400">
+                    <span>⭐ {{ game.avg_rating }}</span>
+                    <span>👥 {{ game.active_players }} онлайн</span>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-20 text-gray-500">
+        <p class="text-5xl mb-4">🎮</p>
+        <p class="text-xl">Пока нет опубликованных игр</p>
+        <p class="mt-2">Станьте первым разработчиком!</p>
+    </div>
+    {% endif %}
+</section>
+
+<!-- Download CTA -->
+<section class="bg-gradient-to-r from-brand-purple to-purple-900 py-16 mt-8">
+    <div class="max-w-4xl mx-auto px-4 text-center">
+        <h2 class="text-3xl font-bold mb-4">Скачай PlayRU на Android</h2>
+        <p class="text-purple-200 mb-8 text-lg">Играй в любимые игры на телефоне. Бесплатно!</p>
+        <a href="{% url 'store:download' %}" class="inline-block bg-brand-yellow text-black font-bold px-10 py-4 rounded-xl hover:bg-yellow-400 transition text-lg">
+            Скачать APK
+        </a>
+    </div>
+</section>
+{% endblock %}

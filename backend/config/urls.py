@@ -7,7 +7,9 @@ from apps.monetization.views import (
     YuKassaWebhookView, SubscriptionStatusView, RevenueAnalyticsView
 )
 urlpatterns = [
+    path('admin/moderation/', include('apps.platform.admin_urls')),
     path('admin/', admin.site.urls),
+    path('dev/', include('apps.developer.urls')),
     path('api/v1/games/', include('apps.games.urls')),
     path('api/v1/', include('apps.platform.urls')),
     path('api/v1/public/metrics/', PublicMetricsView.as_view(), name='public-metrics'),
@@ -19,4 +21,5 @@ urlpatterns = [
     path('api/v1/shop/subscription/<str:nakama_user_id>/', SubscriptionStatusView.as_view(), name='shop-subscription'),
     path('api/v1/shop/analytics/', RevenueAnalyticsView.as_view(), name='shop-analytics'),
     path('', include('django_prometheus.urls')),
+    path('', include('apps.store.urls')),
 ]

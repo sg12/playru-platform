@@ -1,0 +1,16 @@
+{% extends "store/base.html" %}
+
+{% block title %}Заявка принята{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-24 text-center">
+    <div class="text-6xl mb-6">🎉</div>
+    <h1 class="text-4xl font-extrabold mb-4">Заявка принята!</h1>
+    <p class="text-gray-300 text-lg mb-8">
+        Спасибо за интерес к PlayRU! Мы рассмотрим вашу заявку и свяжемся с вами по email.
+    </p>
+    <a href="{% url 'store:home' %}" class="inline-block bg-brand-purple hover:bg-purple-700 text-white font-bold px-8 py-4 rounded-xl transition">
+        На главную
+    </a>
+</div>
+{% endblock %}

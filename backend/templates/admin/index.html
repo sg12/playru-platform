@@ -1,0 +1,27 @@
+{% extends "admin/index.html" %}
+{% load i18n %}
+
+{% block content %}
+{% if pending_games or pending_developers %}
+<div id="playru-alerts" style="background:#ffc;border:1px solid #dda;padding:15px;margin-bottom:20px;border-radius:4px;">
+  <h3 style="margin-top:0;color:#333;">Требует внимания</h3>
+  <ul style="margin:0;padding-left:20px;">
+    {% if pending_games %}
+    <li>
+      <a href="{% url 'moderation-queue' %}">
+        <strong>{{ pending_games }}</strong> игр ожидают модерации
+      </a>
+    </li>
+    {% endif %}
+    {% if pending_developers %}
+    <li>
+      <a href="{% url 'admin:developer_developerprofile_changelist' %}">
+        <strong>{{ pending_developers }}</strong> новых заявок разработчиков
+      </a>
+    </li>
+    {% endif %}
+  </ul>
+</div>
+{% endif %}
+{{ block.super }}
+{% endblock %}

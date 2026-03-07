@@ -1,0 +1,48 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<h2>{{ title }}</h2>
+<p><a href="{% url 'moderation-queue' %}">Очередь модерации</a></p>
+
+<fieldset>
+  <h3>Общие показатели</h3>
+  <table>
+    <tr><th>Всего разработчиков</th><td>{{ total_developers }}</td></tr>
+    <tr><th>Всего игр</th><td>{{ total_games|default:0 }}</td></tr>
+    {% for status, count in status_counts.items %}
+    <tr><th>{{ status }}</th><td>{{ count }}</td></tr>
+    {% endfor %}
+  </table>
+</fieldset>
+
+<fieldset>
+  <h3>Новые заявки</h3>
+  <table>
+    <tr><th>За сегодня</th><td>{{ today_submissions }}</td></tr>
+    <tr><th>За 7 дней</th><td>{{ week_submissions }}</td></tr>
+  </table>
+</fieldset>
+
+{% if top_developers %}
+<fieldset>
+  <h3>Топ-5 разработчиков по количеству игр</h3>
+  <table>
+    <thead>
+      <tr><th>#</th><th>Разработчик</th><th>Игр</th></tr>
+    </thead>
+    <tbody>
+      {% for dev in top_developers %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ dev.display_name }}</td>
+        <td>{{ dev.game_count }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</fieldset>
+{% endif %}
+{% endblock %}

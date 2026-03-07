@@ -1,0 +1,34 @@
+{% extends "store/base.html" %}
+
+{% block title %}Стать разработчиком{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-12">
+    <div class="text-center mb-10">
+        <h1 class="text-4xl font-extrabold mb-4">
+            Создавай игры на <span class="gradient-text">PlayRU</span>
+        </h1>
+        <p class="text-gray-300 text-lg">Оставьте заявку и мы свяжемся с вами</p>
+    </div>
+
+    <div class="bg-brand-darker rounded-2xl p-8">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            {% for field in form %}
+            <div>
+                <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                    {{ field.label }}
+                </label>
+                {{ field }}
+                {% if field.errors %}
+                <p class="text-red-400 text-sm mt-1">{{ field.errors.0 }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+            <button type="submit" class="w-full bg-brand-purple hover:bg-purple-700 text-white font-bold py-4 rounded-xl transition text-lg">
+                Отправить заявку
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

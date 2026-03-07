@@ -1,0 +1,72 @@
+{% extends "developer/base.html" %}
+{% block title %}{{ game.title }} — PlayRU Developer{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="flex items-start justify-between mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-white">{{ game.title }}</h1>
+            <p class="text-slate-400 text-sm mt-1">{{ game.slug }}</p>
+        </div>
+        <div class="flex items-center gap-3">
+            {% include "developer/_status_badge.html" with status=game.status %}
+            {% if game.status == 'draft' or game.status == 'rejected' %}
+            <a href="{% url 'developer:game_edit' game.pk %}"
+               class="px-4 py-2 bg-accent hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition">
+                Редактировать
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if game.status == 'rejected' and game.rejection_reason %}
+    <div class="mb-6 px-5 py-4 bg-red-900/30 border border-red-800 rounded-xl">
+        <p class="text-sm font-medium text-red-300 mb-1">Причина отклонения:</p>
+        <p class="text-red-200 text-sm">{{ game.rejection_reason }}</p>
+    </div>
+    {% endif %}
+
+    <div class="bg-dark-card border border-dark-border rounded-xl divide-y divide-dark-border">
+        <div class="px-5 py-4">
+            <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Описание</p>
+            <p class="text-slate-300">{{ game.description|linebreaksbr }}</p>
+        </div>
+        <div class="grid grid-cols-2 divide-x divide-dark-border">
+            <div class="px-5 py-4">
+                <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Жанр</p>
+                <p class="text-slate-300">{{ game.genre }}</p>
+            </div>
+            <div class="px-5 py-4">
+                <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Мин. возраст</p>
+                <p class="text-slate-300">{{ game.min_age }}+</p>
+            </div>
+        </div>
+        {% if game.godot_repo_url %}
+        <div class="px-5 py-4">
+            <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Godot репозиторий</p>
+            <a href="{{ game.godot_repo_url }}" target="_blank" class="text-accent hover:underline text-sm">{{ game.godot_repo_url }}</a>
+        </div>
+        {% endif %}
+        {% if game.nakama_module_name %}
+        <div class="px-5 py-4">
+            <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Nakama модуль</p>
+            <p class="text-slate-300 font-mono text-sm">{{ game.nakama_module_name }}</p>
+        </div>
+        {% endif %}
+        <div class="grid grid-cols-2 divide-x divide-dark-border">
+            <div class="px-5 py-4">
+                <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Создана</p>
+                <p class="text-slate-300 text-sm">{{ game.created_at|date:"d.m.Y H:i" }}</p>
+            </div>
+            <div class="px-5 py-4">
+                <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Отправлена</p>
+                <p class="text-slate-300 text-sm">{{ game.submitted_at|date:"d.m.Y H:i"|default:"—" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <p class="mt-6">
+        <a href="{% url 'developer:games_list' %}" class="text-slate-400 hover:text-white text-sm transition">← Назад к списку</a>
+    </p>
+</div>
+{% endblock %}

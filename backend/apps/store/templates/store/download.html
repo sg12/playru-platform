@@ -1,0 +1,110 @@
+{% extends "store/base.html" %}
+
+{% block title %}Скачать{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-12">
+    <div class="text-center mb-12">
+        <h1 class="text-4xl md:text-5xl font-extrabold mb-4">
+            Скачай <span class="gradient-text">PlayRU</span>
+        </h1>
+        <p class="text-gray-300 text-lg">Все игры в одном приложении. Бесплатно!</p>
+    </div>
+
+    <div class="bg-brand-darker rounded-2xl p-8 md:p-12 mb-8">
+        <div class="flex flex-col md:flex-row items-center gap-8">
+            <div class="flex-1">
+                <h2 class="text-2xl font-bold mb-4">PlayRU для Android</h2>
+                <ul class="space-y-3 text-gray-300 mb-8">
+                    <li class="flex items-start gap-3">
+                        <span class="text-brand-yellow mt-1">✓</span>
+                        <span>Все игры платформы в одном месте</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="text-brand-yellow mt-1">✓</span>
+                        <span>Мультиплеер с друзьями</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="text-brand-yellow mt-1">✓</span>
+                        <span>Родительский контроль</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="text-brand-yellow mt-1">✓</span>
+                        <span>Без рекламы</span>
+                    </li>
+                </ul>
+                <a href="#" class="inline-block bg-brand-yellow text-black font-bold px-8 py-4 rounded-xl hover:bg-yellow-400 transition text-lg">
+                    📥 Скачать APK (скоро)
+                </a>
+                <p class="text-gray-500 text-sm mt-3">Версия 1.0 · 45 МБ</p>
+            </div>
+            <div class="w-48 h-48 bg-gradient-to-br from-brand-purple to-purple-900 rounded-3xl flex items-center justify-center text-7xl">
+                📱
+            </div>
+        </div>
+    </div>
+
+    <!-- Requirements -->
+    <div class="bg-brand-darker rounded-2xl p-8">
+        <h2 class="text-xl font-bold mb-6">Системные требования</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="flex items-start gap-4">
+                <div class="w-10 h-10 bg-brand-purple/20 rounded-lg flex items-center justify-center flex-shrink-0">📱</div>
+                <div>
+                    <p class="font-medium">Операционная система</p>
+                    <p class="text-gray-400 text-sm">Android 7.0 (Nougat) и выше</p>
+                </div>
+            </div>
+            <div class="flex items-start gap-4">
+                <div class="w-10 h-10 bg-brand-purple/20 rounded-lg flex items-center justify-center flex-shrink-0">💾</div>
+                <div>
+                    <p class="font-medium">Память</p>
+                    <p class="text-gray-400 text-sm">Минимум 2 ГБ ОЗУ</p>
+                </div>
+            </div>
+            <div class="flex items-start gap-4">
+                <div class="w-10 h-10 bg-brand-purple/20 rounded-lg flex items-center justify-center flex-shrink-0">📶</div>
+                <div>
+                    <p class="font-medium">Интернет</p>
+                    <p class="text-gray-400 text-sm">Стабильное подключение для мультиплеера</p>
+                </div>
+            </div>
+            <div class="flex items-start gap-4">
+                <div class="w-10 h-10 bg-brand-purple/20 rounded-lg flex items-center justify-center flex-shrink-0">💿</div>
+                <div>
+                    <p class="font-medium">Место на диске</p>
+                    <p class="text-gray-400 text-sm">100 МБ свободного места</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Install instructions -->
+    <div class="bg-brand-darker rounded-2xl p-8 mt-8">
+        <h2 class="text-xl font-bold mb-6">Как установить</h2>
+        <ol class="space-y-4">
+            <li class="flex items-start gap-4">
+                <span class="w-8 h-8 bg-brand-purple rounded-full flex items-center justify-center font-bold flex-shrink-0">1</span>
+                <div>
+                    <p class="font-medium">Скачайте APK-файл</p>
+                    <p class="text-gray-400 text-sm">Нажмите кнопку «Скачать APK» выше</p>
+                </div>
+            </li>
+            <li class="flex items-start gap-4">
+                <span class="w-8 h-8 bg-brand-purple rounded-full flex items-center justify-center font-bold flex-shrink-0">2</span>
+                <div>
+                    <p class="font-medium">Разрешите установку</p>
+                    <p class="text-gray-400 text-sm">В настройках Android разрешите установку из неизвестных источников</p>
+                </div>
+            </li>
+            <li class="flex items-start gap-4">
+                <span class="w-8 h-8 bg-brand-purple rounded-full flex items-center justify-center font-bold flex-shrink-0">3</span>
+                <div>
+                    <p class="font-medium">Установите и играйте!</p>
+                    <p class="text-gray-400 text-sm">Откройте файл и следуйте инструкциям</p>
+                </div>
+            </li>
+        </ol>
+    </div>
+</div>
+{% endblock %}
