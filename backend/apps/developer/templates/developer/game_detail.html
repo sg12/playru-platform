@@ -65,6 +65,40 @@
         </div>
     </div>
 
+    {% if stats %}
+    <div class="mt-6 bg-dark-card border border-dark-border rounded-xl p-5">
+        <h2 class="text-lg font-semibold text-white mb-4">Статистика игры</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-slate-900 rounded-lg p-4 text-center">
+                <p class="text-2xl font-bold text-white">{{ stats.play_count }}</p>
+                <p class="text-xs text-slate-500 mt-1">Запусков</p>
+            </div>
+            <div class="bg-slate-900 rounded-lg p-4 text-center">
+                <p class="text-2xl font-bold text-white">{{ stats.total_sessions }}</p>
+                <p class="text-xs text-slate-500 mt-1">Сессий</p>
+            </div>
+            <div class="bg-slate-900 rounded-lg p-4 text-center">
+                <p class="text-2xl font-bold text-yellow-400">{{ stats.avg_rating }}</p>
+                <p class="text-xs text-slate-500 mt-1">Рейтинг ({{ stats.ratings_count }} оц.)</p>
+            </div>
+            <div class="bg-slate-900 rounded-lg p-4 text-center">
+                <p class="text-2xl font-bold text-white">{{ stats.total_playtime_hours }}ч</p>
+                <p class="text-xs text-slate-500 mt-1">Время игры</p>
+            </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4 mt-4">
+            <div class="bg-slate-900 rounded-lg p-4 text-center">
+                <p class="text-2xl font-bold text-green-400">{{ stats.active_players }}</p>
+                <p class="text-xs text-slate-500 mt-1">Активных игроков</p>
+            </div>
+            <div class="bg-slate-900 rounded-lg p-4 text-center">
+                <p class="text-2xl font-bold text-blue-400">{{ stats.avg_score }}</p>
+                <p class="text-xs text-slate-500 mt-1">Средний скор</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <p class="mt-6">
         <a href="{% url 'developer:games_list' %}" class="text-slate-400 hover:text-white text-sm transition">← Назад к списку</a>
     </p>

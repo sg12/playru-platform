@@ -59,8 +59,12 @@ if GameSubmission is not None:
 
         @admin.action(description='Одобрить выбранные игры')
         def approve_selected(self, request, queryset):
-            updated = queryset.update(status='published')
-            self.message_user(request, f'{updated} игр(а) одобрено и опубликовано.')
+            from .admin_views import _publish_submission
+            count = 0
+            for submission in queryset:
+                _publish_submission(submission)
+                count += 1
+            self.message_user(request, f'{count} игр(а) одобрено и опубликовано.')
 
         @admin.action(description='Отклонить выбранные игры')
         def reject_selected(self, request, queryset):

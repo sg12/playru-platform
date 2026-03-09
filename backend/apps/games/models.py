@@ -23,6 +23,13 @@ class Game(models.Model):
     max_players = models.PositiveSmallIntegerField(default=10)
     min_players = models.PositiveSmallIntegerField(default=1)
 
+    # PCK (загружаемые игры)
+    pck_file = models.FileField('PCK файл', upload_to='games/pck/', null=True, blank=True)
+    pck_hash = models.CharField('SHA-256 хеш', max_length=64, blank=True)
+    pck_size = models.PositiveBigIntegerField('Размер PCK (байт)', default=0)
+    pck_version = models.CharField('Версия PCK', max_length=20, blank=True)
+    entry_scene = models.CharField('Точка входа (сцена)', max_length=200, blank=True)
+
     # Метрики
     play_count = models.PositiveBigIntegerField(default=0)
     active_players = models.PositiveIntegerField(default=0)

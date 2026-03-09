@@ -83,7 +83,7 @@ def games_list_view(request):
 @login_required(login_url='/dev/login/')
 def game_create_view(request):
     profile = _get_profile(request.user)
-    form = GameSubmissionForm(request.POST or None)
+    form = GameSubmissionForm(request.POST or None, request.FILES or None)
     if request.method == 'POST' and form.is_valid():
         game = form.save(commit=False)
         game.developer = profile
@@ -103,9 +103,29 @@ def game_create_view(request):
 def game_detail_view(request, game_id):
     profile = _get_profile(request.user)
     game = get_object_or_404(GameSubmission, pk=game_id, developer=profile)
+    stats = None
+    if game.game_id:
+        from apps.platform.models import GameSession
+        from django.db.models import Count, Sum, Avg
+        catalog_game = game.game
+        session_stats = GameSession.objects.filter(game=catalog_game).aggregate(
+            total_sessions=Count('id'),
+            total_playtime=Sum('duration_seconds'),
+            avg_score=Avg('score'),
+        )
+        stats = {
+            'play_count': catalog_game.play_count,
+            'avg_rating': catalog_game.avg_rating,
+            'ratings_count': catalog_game.ratings_count,
+            'active_players': catalog_game.active_players,
+            'total_sessions': session_stats['total_sessions'] or 0,
+            'total_playtime_hours': round((session_stats['total_playtime'] or 0) / 3600, 1),
+            'avg_score': round(session_stats['avg_score'] or 0),
+        }
     return render(request, 'developer/game_detail.html', {
         'game': game,
         'profile': profile,
+        'stats': stats,
     })
 
 
@@ -115,7 +135,7 @@ def game_edit_view(request, game_id):
     game = get_object_or_404(GameSubmission, pk=game_id, developer=profile)
     if game.status not in (GameSubmission.Status.DRAFT, GameSubmission.Status.REJECTED):
         return redirect('developer:game_detail', game_id=game.pk)
-    form = GameSubmissionForm(request.POST or None, instance=game)
+    form = GameSubmissionForm(request.POST or None, request.FILES or None, instance=game)
     if request.method == 'POST' and form.is_valid():
         game = form.save(commit=False)
         if 'submit' in request.POST:
@@ -132,6 +152,12 @@ def game_edit_view(request, game_id):
         'profile': profile,
         'editing': True,
     })
+
+
+@login_required(login_url='/dev/login/')
+def guide_view(request):
+    profile = _get_profile(request.user)
+    return render(request, 'developer/guide.html', {'profile': profile})
 
 
 @login_required(login_url='/dev/login/')

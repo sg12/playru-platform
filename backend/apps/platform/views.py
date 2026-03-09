@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 
 from django.db.models import Count, Sum
 from django.utils import timezone
@@ -108,11 +108,49 @@ class PlatformHealthView(APIView):
 
 
 class GameLeaderboardView(APIView):
+    """GET /api/v1/games/<slug>/leaderboard/?period=all|week|day"""
+
     def get(self, request, slug):
+        game = Game.objects.filter(slug=slug).first()
+        if not game:
+            return Response({'error': 'Game not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        period = request.query_params.get('period', 'all')
+
+        qs = GameSession.objects.filter(game=game, score__gt=0)
+        if period == 'day':
+            qs = qs.filter(started_at__date=date.today())
+        elif period == 'week':
+            qs = qs.filter(started_at__gte=timezone.now() - timedelta(days=7))
+
+        from django.db.models import Max
+        top = (
+            qs.values('nakama_user_id')
+            .annotate(best_score=Max('score'))
+            .order_by('-best_score')[:50]
+        )
+
+        user_ids = [r['nakama_user_id'] for r in top]
+        profiles = {
+            p.nakama_user_id: p.display_name
+            for p in UserProfile.objects.filter(nakama_user_id__in=user_ids)
+        }
+
+        records = []
+        for rank, row in enumerate(top, 1):
+            uid = row['nakama_user_id']
+            records.append({
+                'rank': rank,
+                'nakama_user_id': uid,
+                'display_name': profiles.get(uid, uid[:8] + '...'),
+                'score': row['best_score'],
+            })
+
         return Response({
             'game_slug': slug,
-            'records': [],
-            'message': 'coming soon',
+            'period': period,
+            'total_players': len(records),
+            'records': records,
         })
 
 

@@ -13,5 +13,6 @@ urlpatterns = [
     path('games/new/', views.game_create_view, name='game_create'),
     path('games/<int:game_id>/', views.game_detail_view, name='game_detail'),
     path('games/<int:game_id>/edit/', views.game_edit_view, name='game_edit'),
+    path('guide/', views.guide_view, name='guide'),
     path('profile/', views.profile_view, name='profile'),
 ]

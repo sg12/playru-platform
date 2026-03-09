@@ -53,6 +53,17 @@ class GameSubmission(models.Model):
     rejection_reason = models.TextField('Причина отклонения', blank=True)
     godot_repo_url = models.URLField('Godot репозиторий', blank=True)
     nakama_module_name = models.CharField('Nakama модуль', max_length=200, blank=True)
+    pck_file = models.FileField('PCK файл', upload_to='submissions/pck/', null=True, blank=True)
+    entry_scene = models.CharField('Точка входа (сцена)', max_length=200, blank=True,
+                                   help_text='Например: res://MyGame.tscn')
+    game = models.OneToOneField(
+        'games.Game',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='submission',
+        verbose_name='Игра в каталоге',
+    )
     submitted_at = models.DateTimeField('Дата отправки', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

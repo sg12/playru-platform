@@ -11,6 +11,59 @@ except ImportError:
     DeveloperProfile = None
     GameSubmission = None
 
+try:
+    from apps.games.models import Game
+except ImportError:
+    Game = None
+
+
+def _publish_submission(submission):
+    """Создать/обновить Game в каталоге при одобрении GameSubmission."""
+    if Game is None:
+        submission.status = 'published'
+        submission.save(update_fields=['status'])
+        return
+
+    defaults = {
+        'title': submission.title,
+        'description': submission.description,
+        'short_description': submission.description[:300],
+        'genre': submission.genre,
+        'min_age': submission.min_age,
+        'nakama_match_label': submission.nakama_module_name,
+        'lua_module_name': submission.nakama_module_name,
+        'entry_scene': getattr(submission, 'entry_scene', '') or '',
+        'status': Game.Status.PUBLISHED,
+    }
+
+    # Копируем PCK из submission в Game
+    if submission.pck_file:
+        import hashlib
+        from django.core.files.base import ContentFile
+
+        submission.pck_file.seek(0)
+        content = submission.pck_file.read()
+        pck_hash = hashlib.sha256(content).hexdigest()
+
+        defaults['pck_hash'] = pck_hash
+        defaults['pck_size'] = len(content)
+        defaults['pck_version'] = timezone.now().strftime('%Y%m%d%H%M')
+
+        game_obj, _ = Game.objects.update_or_create(
+            slug=submission.slug, defaults=defaults,
+        )
+        game_obj.pck_file.save(
+            f'{submission.slug}.pck', ContentFile(content), save=True,
+        )
+    else:
+        game_obj, _ = Game.objects.update_or_create(
+            slug=submission.slug, defaults=defaults,
+        )
+
+    submission.game = game_obj
+    submission.status = 'published'
+    submission.save(update_fields=['status', 'game'])
+
 
 @staff_member_required
 def moderation_queue(request):
@@ -34,8 +87,7 @@ def moderation_queue(request):
             return redirect('moderation-queue')
 
         if action == 'approve':
-            submission.status = 'published'
-            submission.save(update_fields=['status'])
+            _publish_submission(submission)
         elif action == 'reject':
             reason = request.POST.get('rejection_reason', '')
             submission.status = 'rejected'
