@@ -43,3 +43,10 @@ LOGGING = {
         'level': 'INFO',
     },
 }
+
+# Static files с WhiteNoise
+STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
+
+CSRF_TRUSTED_ORIGINS = ['https://api.plobox.ru']
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
