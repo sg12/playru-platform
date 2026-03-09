@@ -36,6 +36,9 @@ spec:
         command: ["gunicorn", "config.wsgi:application",
                   "--bind", "0.0.0.0:8000",
                   "--workers", "4", "--timeout", "120"]
+        volumeMounts:
+        - name: media-storage
+          mountPath: /app/media
         resources:
           requests:
             memory: "256Mi"
@@ -57,3 +60,7 @@ spec:
           initialDelaySeconds: 10
           periodSeconds: 10
           failureThreshold: 2
+      volumes:
+      - name: media-storage
+        persistentVolumeClaim:
+          claimName: django-media-pvc
