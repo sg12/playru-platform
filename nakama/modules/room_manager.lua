@@ -11,7 +11,7 @@ local CODE_COLLECTION = "room_codes"
 -- Маппинг game_slug → специфичный match handler
 -- Игры без записи используют generic "match_handler"
 local MATCH_HANDLERS = {
-    island_survival = "island_survival_match",
+    island_survival = "games_island_survival_mp",
     -- future games:
     -- arena_shooter = "arena_match",
 }

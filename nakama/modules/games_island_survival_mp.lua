@@ -1390,7 +1390,6 @@ end
 -- Registration
 -- ============================================================
 
-nk.register_match(M, "island_survival_match")
 
 -- RPC для создания Island Survival матча
 nk.register_rpc(function(context, payload)
@@ -1405,8 +1404,8 @@ nk.register_rpc(function(context, payload)
         saved_match_id = data.saved_match_id or ""
     }
 
-    local match_id = nk.match_create("island_survival_match", params)
+    local match_id = nk.match_create("games_island_survival_mp", params)
     return nk.json_encode({ match_id = match_id })
 end, "games/island_survival/create_match")
 
-return {}
+return M

@@ -639,7 +639,6 @@ end
 -- Регистрация match handler и RPC
 -- ============================================================
 
-nk.register_match(M)
 
 -- RPC: создать матч
 nk.register_rpc(function(context, payload)
