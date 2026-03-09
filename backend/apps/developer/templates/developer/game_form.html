@@ -7,7 +7,7 @@
         {% if editing %}Редактировать игру{% else %}Новая игра{% endif %}
     </h1>
 
-    <form method="post" class="space-y-5">
+    <form method="post" enctype="multipart/form-data" class="space-y-5">
         {% csrf_token %}
         {% for field in form %}
         <div>

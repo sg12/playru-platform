@@ -46,10 +46,12 @@ class RegisterForm(forms.Form):
 
 
 class GameSubmissionForm(forms.ModelForm):
+    MAX_PCK_SIZE = 50 * 1024 * 1024  # 50 MB
+
     class Meta:
         model = GameSubmission
         fields = ['title', 'slug', 'description', 'genre', 'min_age',
-                  'godot_repo_url', 'nakama_module_name']
+                  'godot_repo_url', 'nakama_module_name', 'pck_file', 'entry_scene']
         widgets = {
             'title': forms.TextInput(attrs={'class': tw, 'placeholder': 'Название игры'}),
             'slug': forms.TextInput(attrs={'class': tw, 'placeholder': 'slug-igry'}),
@@ -58,7 +60,15 @@ class GameSubmissionForm(forms.ModelForm):
             'min_age': forms.NumberInput(attrs={'class': tw, 'min': 0}),
             'godot_repo_url': forms.URLInput(attrs={'class': tw, 'placeholder': 'https://github.com/...'}),
             'nakama_module_name': forms.TextInput(attrs={'class': tw, 'placeholder': 'my_game_module'}),
+            'pck_file': forms.ClearableFileInput(attrs={'class': tw, 'accept': '.pck'}),
+            'entry_scene': forms.TextInput(attrs={'class': tw, 'placeholder': 'res://MyGame.tscn'}),
         }
+
+    def clean_pck_file(self):
+        pck = self.cleaned_data.get('pck_file')
+        if pck and pck.size > self.MAX_PCK_SIZE:
+            raise forms.ValidationError(f'PCK файл слишком большой (макс. {self.MAX_PCK_SIZE // 1024 // 1024} МБ).')
+        return pck
 
     GENRE_CHOICES = [
         ('', 'Выберите жанр'),

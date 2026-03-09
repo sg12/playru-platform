@@ -1,0 +1,225 @@
+{% extends "developer/base.html" %}
+{% block title %}Developer Guide — PlayRU{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+    <div>
+        <h1 class="text-3xl font-bold text-white mb-2">Developer Guide</h1>
+        <p class="text-slate-400">Всё, что нужно для создания и публикации игры на PlayRU Platform.</p>
+    </div>
+
+    <!-- Quick Start -->
+    <section class="bg-dark-card border border-dark-border rounded-xl p-6">
+        <h2 class="text-xl font-semibold text-white mb-4">Quick Start</h2>
+        <ol class="list-decimal list-inside space-y-3 text-slate-300">
+            <li><strong>Зарегистрируйтесь</strong> как разработчик на <code class="text-accent">/dev/register/</code></li>
+            <li><strong>Создайте игру</strong> — перейдите в <a href="{% url 'developer:game_create' %}" class="text-accent hover:underline">Новая игра</a> и заполните форму</li>
+            <li><strong>Укажите репозиторий</strong> — ссылка на Godot-проект (GitHub/GitLab)</li>
+            <li><strong>Отправьте на модерацию</strong> — нажмите "Отправить на модерацию"</li>
+            <li><strong>После одобрения</strong> игра автоматически появится в каталоге для всех игроков</li>
+        </ol>
+    </section>
+
+    <!-- Структура игры -->
+    <section class="bg-dark-card border border-dark-border rounded-xl p-6">
+        <h2 class="text-xl font-semibold text-white mb-4">Структура Godot-проекта</h2>
+        <pre class="bg-slate-900 rounded-lg p-4 text-sm text-green-400 overflow-x-auto">games/my_game/
+├── MyGame.gd          # Главный скрипт (точка входа)
+├── MyGame.tscn        # Главная сцена
+├── game.cfg           # Метаданные игры (название, версия)
+└── assets/            # Ресурсы (спрайты, звуки)</pre>
+
+        <h3 class="text-lg font-medium text-white mt-6 mb-3">game.cfg (пример)</h3>
+        <pre class="bg-slate-900 rounded-lg p-4 text-sm text-yellow-400 overflow-x-auto">[game]
+title = "Моя Игра"
+slug = "my-game"
+version = "1.0.0"
+genre = "arcade"
+min_age = 6
+min_players = 1
+max_players = 1
+
+[entry]
+scene = "MyGame.tscn"</pre>
+    </section>
+
+    <!-- Контракт игры -->
+    <section class="bg-dark-card border border-dark-border rounded-xl p-6">
+        <h2 class="text-xl font-semibold text-white mb-4">Контракт с платформой</h2>
+        <p class="text-slate-400 mb-4">Ваша игра взаимодействует с платформой через <code class="text-accent">GameManager</code>:</p>
+        <pre class="bg-slate-900 rounded-lg p-4 text-sm text-blue-400 overflow-x-auto"># Завершить игру и вернуться в лобби
+GameManager.end_game()
+
+# Отправить результат (score)
+GameManager.submit_score(score: int)
+
+# Получить данные текущего игрока
+var player = GameManager.get_current_player()
+# player.nakama_user_id, player.display_name</pre>
+    </section>
+
+    <!-- Platform API -->
+    <section class="bg-dark-card border border-dark-border rounded-xl p-6">
+        <h2 class="text-xl font-semibold text-white mb-4">Platform API Reference</h2>
+        <p class="text-slate-400 mb-4">Base URL: <code class="text-accent">https://api.playru.ru/api/v1</code></p>
+
+        <div class="space-y-6">
+            <!-- Sessions -->
+            <div>
+                <h3 class="text-lg font-medium text-white mb-3">Игровые сессии</h3>
+                <div class="space-y-3">
+                    <div class="bg-slate-900 rounded-lg p-4">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="px-2 py-0.5 bg-green-900 text-green-300 text-xs font-mono rounded">POST</span>
+                            <code class="text-sm text-slate-300">/sessions/start/</code>
+                        </div>
+                        <p class="text-sm text-slate-400 mb-2">Начало игровой сессии. Вызывается при запуске игры.</p>
+                        <pre class="text-xs text-slate-500">Request:  {"nakama_user_id": "abc123", "game_slug": "my-game", "platform": "android"}
+Response: {"session_id": "uuid", "started_at": "2026-03-09T12:00:00Z"}</pre>
+                    </div>
+
+                    <div class="bg-slate-900 rounded-lg p-4">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="px-2 py-0.5 bg-green-900 text-green-300 text-xs font-mono rounded">POST</span>
+                            <code class="text-sm text-slate-300">/sessions/{session_id}/end/</code>
+                        </div>
+                        <p class="text-sm text-slate-400 mb-2">Завершение сессии с результатом.</p>
+                        <pre class="text-xs text-slate-500">Request:  {"score": 1500, "completed": true, "duration_seconds": 120}
+Response: {"session_id": "uuid", "score": 1500, "ended_at": "..."}</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leaderboard -->
+            <div>
+                <h3 class="text-lg font-medium text-white mb-3">Лидерборд</h3>
+                <div class="bg-slate-900 rounded-lg p-4">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="px-2 py-0.5 bg-blue-900 text-blue-300 text-xs font-mono rounded">GET</span>
+                        <code class="text-sm text-slate-300">/games/{slug}/leaderboard/?period=all|week|day</code>
+                    </div>
+                    <p class="text-sm text-slate-400 mb-2">Топ-50 игроков по лучшему скору.</p>
+                    <pre class="text-xs text-slate-500">Response: {
+  "game_slug": "my-game",
+  "period": "all",
+  "total_players": 3,
+  "records": [
+    {"rank": 1, "display_name": "Player1", "score": 5000},
+    {"rank": 2, "display_name": "Player2", "score": 3200}
+  ]
+}</pre>
+                </div>
+            </div>
+
+            <!-- Profile -->
+            <div>
+                <h3 class="text-lg font-medium text-white mb-3">Профиль игрока</h3>
+                <div class="space-y-3">
+                    <div class="bg-slate-900 rounded-lg p-4">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="px-2 py-0.5 bg-green-900 text-green-300 text-xs font-mono rounded">POST</span>
+                            <code class="text-sm text-slate-300">/profile/sync/</code>
+                        </div>
+                        <p class="text-sm text-slate-400 mb-2">Создать/обновить профиль игрока.</p>
+                        <pre class="text-xs text-slate-500">Request:  {"nakama_user_id": "abc123", "display_name": "Player1", "auth_provider": "vk"}
+Response: {"nakama_user_id": "abc123", "display_name": "Player1", "created": true}</pre>
+                    </div>
+                    <div class="bg-slate-900 rounded-lg p-4">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="px-2 py-0.5 bg-blue-900 text-blue-300 text-xs font-mono rounded">GET</span>
+                            <code class="text-sm text-slate-300">/profile/{nakama_user_id}/</code>
+                        </div>
+                        <p class="text-sm text-slate-400">Получить профиль игрока по Nakama ID.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rating -->
+            <div>
+                <h3 class="text-lg font-medium text-white mb-3">Рейтинг и отзывы</h3>
+                <div class="space-y-3">
+                    <div class="bg-slate-900 rounded-lg p-4">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="px-2 py-0.5 bg-green-900 text-green-300 text-xs font-mono rounded">POST</span>
+                            <code class="text-sm text-slate-300">/games/{slug}/rate/</code>
+                        </div>
+                        <p class="text-sm text-slate-400 mb-2">Поставить оценку игре (1-5 звёзд).</p>
+                        <pre class="text-xs text-slate-500">Request:  {"nakama_user_id": "abc123", "stars": 5, "review": "Отличная игра!"}
+Response: {"success": true, "game_avg_rating": 4.5, "game_ratings_count": 12}</pre>
+                    </div>
+                    <div class="bg-slate-900 rounded-lg p-4">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="px-2 py-0.5 bg-blue-900 text-blue-300 text-xs font-mono rounded">GET</span>
+                            <code class="text-sm text-slate-300">/games/{slug}/reviews/</code>
+                        </div>
+                        <p class="text-sm text-slate-400">Список одобренных отзывов (последние 20).</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Play count -->
+            <div>
+                <h3 class="text-lg font-medium text-white mb-3">Аналитика</h3>
+                <div class="bg-slate-900 rounded-lg p-4">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="px-2 py-0.5 bg-green-900 text-green-300 text-xs font-mono rounded">POST</span>
+                        <code class="text-sm text-slate-300">/games/{slug}/play/</code>
+                    </div>
+                    <p class="text-sm text-slate-400">Засчитать запуск игры (инкремент play_count).</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Ограничения -->
+    <section class="bg-dark-card border border-dark-border rounded-xl p-6">
+        <h2 class="text-xl font-semibold text-white mb-4">Требования и ограничения</h2>
+        <div class="grid md:grid-cols-2 gap-4">
+            <div class="bg-slate-900 rounded-lg p-4">
+                <h4 class="text-white font-medium mb-2">Технические</h4>
+                <ul class="text-sm text-slate-400 space-y-1">
+                    <li>Godot 4.x</li>
+                    <li>Разрешение: 1280x720 (landscape) или 720x1280 (portrait)</li>
+                    <li>Максимальный размер .pck: 50 МБ</li>
+                    <li>Запрещено: доступ к файловой системе, сеть напрямую (только через API)</li>
+                </ul>
+            </div>
+            <div class="bg-slate-900 rounded-lg p-4">
+                <h4 class="text-white font-medium mb-2">Контентные</h4>
+                <ul class="text-sm text-slate-400 space-y-1">
+                    <li>Возрастной рейтинг: от 6+</li>
+                    <li>Без насилия, 18+ контента</li>
+                    <li>Без рекламы сторонних сервисов</li>
+                    <li>Русский язык интерфейса обязателен</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Жизненный цикл -->
+    <section class="bg-dark-card border border-dark-border rounded-xl p-6">
+        <h2 class="text-xl font-semibold text-white mb-4">Жизненный цикл публикации</h2>
+        <div class="flex flex-wrap items-center gap-3 text-sm">
+            <span class="px-3 py-1.5 bg-slate-700 text-slate-300 rounded-lg">Черновик</span>
+            <span class="text-slate-500">&rarr;</span>
+            <span class="px-3 py-1.5 bg-yellow-900/50 text-yellow-300 rounded-lg border border-yellow-800">На модерации</span>
+            <span class="text-slate-500">&rarr;</span>
+            <span class="px-3 py-1.5 bg-blue-900/50 text-blue-300 rounded-lg border border-blue-800">Опубликована</span>
+        </div>
+        <p class="text-slate-400 mt-4 text-sm">
+            Если игра отклонена, вы получите причину отказа и сможете исправить замечания и отправить повторно.
+        </p>
+    </section>
+
+    <!-- Поддержка -->
+    <section class="bg-dark-card border border-dark-border rounded-xl p-6">
+        <h2 class="text-xl font-semibold text-white mb-4">Поддержка</h2>
+        <p class="text-slate-400">
+            По вопросам разработки: <code class="text-accent">dev@playru.ru</code><br>
+            Telegram-канал для разработчиков: <code class="text-accent">@playru_dev</code>
+        </p>
+    </section>
+
+</div>
+{% endblock %}

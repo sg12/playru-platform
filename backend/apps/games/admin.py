@@ -5,11 +5,16 @@ from .models import Game, GameRating
 
 @admin.register(Game)
 class GameAdmin(admin.ModelAdmin):
-    list_display = ['title', 'slug', 'status', 'genre', 'play_count',
-                    'avg_rating', 'ratings_count', 'created_at']
+    list_display = ['title', 'slug', 'status', 'genre', 'has_pck',
+                    'play_count', 'avg_rating', 'ratings_count', 'created_at']
     list_filter = ['status', 'genre', 'is_featured']
     search_fields = ['title', 'slug', 'description']
-    readonly_fields = ['play_count', 'avg_rating', 'ratings_count']
+    readonly_fields = ['play_count', 'avg_rating', 'ratings_count',
+                       'pck_hash', 'pck_size']
+
+    @admin.display(boolean=True, description='PCK')
+    def has_pck(self, obj):
+        return bool(obj.pck_file)
     prepopulated_fields = {'slug': ('title',)}
     ordering = ['-play_count']
 
