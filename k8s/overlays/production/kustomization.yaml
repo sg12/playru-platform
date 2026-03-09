@@ -4,7 +4,6 @@ kind: Kustomization
 namespace: playru
 
 resources:
-  - ../../namespace.yaml
   - ../../postgres/deployment.yaml
   - ../../postgres/service.yaml
   - ../../postgres/pvc.yaml
@@ -24,14 +23,14 @@ patches:
   - patch: |-
       - op: replace
         path: /spec/replicas
-        value: 2
+        value: 1
     target:
       kind: Deployment
       name: django
   - patch: |-
       - op: replace
         path: /spec/replicas
-        value: 2
+        value: 1
     target:
       kind: Deployment
       name: nakama
