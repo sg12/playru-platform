@@ -84,7 +84,16 @@ local function mark_read(context, payload)
         ids = {ids}
     end
 
-    nk.notifications_delete(context.user_id, ids)
+    -- nk.notifications_delete принимает таблицу {user_id=, notification_id=}
+    local deletes = {}
+    for _, id in ipairs(ids) do
+        table.insert(deletes, {
+            user_id = context.user_id,
+            notification_id = id,
+        })
+    end
+
+    nk.notifications_delete(deletes)
     return nk.json_encode({success = true, deleted = #ids})
 end
 
