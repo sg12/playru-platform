@@ -78,8 +78,14 @@ local function mark_read(context, payload)
         return nk.json_encode({success = true, deleted = 0})
     end
 
-    nk.notifications_delete(context.user_id, data.ids)
-    return nk.json_encode({success = true, deleted = #data.ids})
+    -- Гарантируем, что ids — таблица
+    local ids = data.ids
+    if type(ids) == "string" then
+        ids = {ids}
+    end
+
+    nk.notifications_delete(context.user_id, ids)
+    return nk.json_encode({success = true, deleted = #ids})
 end
 
 nk.register_rpc(get_notifications, "platform/notifications")
