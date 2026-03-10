@@ -104,15 +104,26 @@ nakama/modules/
 
 ```bash
 # Dockerfile: /opt/playru-platform/backend/Dockerfile
-# Image name: playru-backend:latest (хранится в локальном K3s registry)
+# Image name: playru-django (хранится в containerd k3s)
 
-# Сборка:
+# Сборка и деплой:
 cd /opt/playru-platform
-docker build --no-cache -t playru-backend:latest ./backend/
-docker save playru-backend:latest | k3s ctr images import -
+git pull
+docker build --no-cache -t playru-django:vN ./backend/    # N — инкрементируй каждый раз!
+docker save playru-django:vN | k3s ctr images import -
+kubectl -n playru set image deployment/django django=playru-django:vN
+kubectl -n playru rollout status deployment/django
 ```
 
-Dockerfile включает: Python 3.11-slim, Django 4.2, DRF, psycopg2, gunicorn, collectstatic.
+**ВАЖНО:**
+- Container runtime: **containerd** (НЕ Docker). Docker-образы невидимы для k3s — нужен `docker save | k3s ctr images import -`
+- `imagePullPolicy: Never` — k8s никогда не скачивает образ, только берёт из локального containerd
+- **Обязательно инкрементировать тег** (v2, v3, v4...) — иначе k8s не подхватит новый образ при `rollout restart`
+- `--no-cache` обязателен — иначе Docker переиспользует слои с устаревшим кодом
+- `rollout restart` **НЕ работает** для обновления образа — нужен `set image` с новым тегом
+- Текущий тег на сервере: `playru-django:v3` (на 10 марта 2026)
+
+Dockerfile включает: Python 3.11-slim, Django 4.2, DRF, psycopg2, gunicorn, whitenoise, collectstatic, entrypoint.sh.
 
 ### Nakama (официальный образ)
 
@@ -198,23 +209,25 @@ kubectl logs -n playru -l app=nakama --tail=20 | grep -E "error|fatal|API server
 cd /opt/playru-platform
 git pull
 
-# 2. Пересобрать Docker-образ
-docker build --no-cache -t playru-backend:latest ./backend/
-docker save playru-backend:latest | k3s ctr images import -
+# 2. Пересобрать Docker-образ (ОБЯЗАТЕЛЬНО: --no-cache + новый тег!)
+docker build --no-cache -t playru-django:vN ./backend/
 
-# 3. Рестарт Django
-kubectl rollout restart deployment/django -n playru
+# 3. Импортировать в containerd (Docker-образы невидимы для k3s!)
+docker save playru-django:vN | k3s ctr images import -
 
-# 4. Миграции (если были изменения в моделях)
-sleep 30
-NEW_POD=$(kubectl get pods -n playru -l app=django --sort-by=.metadata.creationTimestamp -o jsonpath='{.items[-1].metadata.name}')
-kubectl exec -n playru $NEW_POD -- python manage.py migrate
+# 4. Обновить образ в deployment (rollout restart НЕ обновляет образ!)
+kubectl -n playru set image deployment/django django=playru-django:vN
+kubectl -n playru rollout status deployment/django
 
-# 5. Seed data (если добавили новые игры/пакеты)
-kubectl exec -n playru $NEW_POD -- python manage.py seed_games
-kubectl exec -n playru $NEW_POD -- python manage.py seed_monetization
+# 5. Миграции (если были изменения в моделях)
+kubectl -n playru exec deploy/django -- python manage.py migrate
 
-# 6. Проверить
+# 6. Seed data (если добавили новые игры/пакеты)
+kubectl -n playru exec deploy/django -- python manage.py seed_games
+kubectl -n playru exec deploy/django -- python manage.py seed_monetization
+
+# 7. Проверить
+kubectl -n playru exec deploy/django -- cat /app/config/urls.py   # убедиться что код обновился
 curl -s https://api.plobox.ru/api/v1/platform/health/ | python3 -m json.tool
 ```
 
@@ -225,10 +238,11 @@ ssh root@77.222.35.13
 cd /opt/playru-platform
 git pull
 
-# Django
-docker build --no-cache -t playru-backend:latest ./backend/
-docker save playru-backend:latest | k3s ctr images import -
-kubectl rollout restart deployment/django -n playru
+# Django (инкрементировать тег!)
+docker build --no-cache -t playru-django:vN ./backend/
+docker save playru-django:vN | k3s ctr images import -
+kubectl -n playru set image deployment/django django=playru-django:vN
+kubectl -n playru rollout status deployment/django
 
 # Nakama
 cd nakama/modules
@@ -301,6 +315,10 @@ curl -sk https://ws.plobox.ru/healthcheck
 | `nk.register_match` error | Нет такой функции в Nakama Lua | Удалить вызов, модуль должен просто `return M` |
 | ConfigMap не обновился | K8s кэширует ConfigMap | `kubectl delete` + `kubectl create` (не `apply`) |
 | Старый pod не удаляется | Rolling update ждёт новый pod | Проверить статус нового пода, при необходимости `kubectl delete pod` |
+| ErrImageNeverPull | Образ не импортирован в containerd | `docker save <image> \| k3s ctr images import -` |
+| Код не обновился после rollout restart | `imagePullPolicy: Never` + тот же тег | Собрать с новым тегом + `kubectl set image` |
+| `docker build` использует кеш | Docker кеширует слои COPY | Добавить `--no-cache` к `docker build` |
+| Media 404 на проде | `django.conf.urls.static` не работает при DEBUG=False | Используем `re_path` + `django.views.static.serve` |
 
 ### Откат
 
@@ -360,4 +378,28 @@ playru-platform/
 
 ---
 
-*Документ обновлён: 9 марта 2026*
+## 12. Media-файлы
+
+- `MEDIA_ROOT: /app/media` (в production.py не переопределяется, берётся из base.py)
+- `MEDIA_URL: /media/`
+- Media раздаётся через `django.views.static.serve` (в urls.py), НЕ через `static()` (которая не работает при `DEBUG=False`)
+- WhiteNoise раздаёт только **static**, НЕ media
+- PVC `django-media-pvc` — shared volume (hostPath на `/dev/vda1`), данные сохраняются при рестарте подов
+- Файлы загружаются через Django Admin или developer portal
+- Для ручной загрузки: `kubectl -n playru cp <file> <pod-name>:/app/media/<path>`
+
+### Загрузка файла с локальной машины на сервер
+
+```bash
+# 1. С локального Mac на VPS
+scp /path/to/file root@77.222.35.13:/tmp/file
+
+# 2. С VPS в pod (сначала узнать имя пода)
+kubectl -n playru get pods -l app=django
+kubectl -n playru exec deploy/django -- mkdir -p /app/media/games/pck/
+kubectl -n playru cp /tmp/file <pod-name>:/app/media/games/pck/file
+```
+
+---
+
+*Документ обновлён: 10 марта 2026*

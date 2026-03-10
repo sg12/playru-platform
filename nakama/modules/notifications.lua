@@ -26,6 +26,7 @@ local function send_notification(user_id, code, subject, content, sender_id)
 end
 
 -- RPC: Получить непрочитанные уведомления
+-- nk.notifications_list недоступна в Nakama 3.22, используем SQL
 local function get_notifications(context, payload)
     local data = {}
     if payload and payload ~= "" then
@@ -34,16 +35,28 @@ local function get_notifications(context, payload)
     end
     local limit = (data and data.limit) or 20
 
-    local notifications, cursor = nk.notifications_list(context.user_id, limit, nil)
+    local query = [[
+        SELECT id, subject, content, code, create_time
+        FROM notification
+        WHERE user_id = $1::UUID
+        ORDER BY create_time DESC
+        LIMIT $2::INT
+    ]]
+    local rows = nk.sql_query(query, {context.user_id, limit})
 
     local result = {}
-    for _, n in ipairs(notifications) do
+    for _, row in ipairs(rows) do
+        local content = row.content
+        if type(content) == "string" then
+            local ok, decoded = pcall(nk.json_decode, content)
+            if ok then content = decoded end
+        end
         table.insert(result, {
-            id = n.id,
-            subject = n.subject,
-            content = n.content,
-            code = n.code,
-            create_time = n.create_time,
+            id = row.id,
+            subject = row.subject,
+            content = content,
+            code = row.code,
+            create_time = row.create_time,
         })
     end
 
